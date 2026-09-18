@@ -397,7 +397,7 @@
         <header>
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1007.png" class="header-pokemon left" alt="Koraidon">
             <div class="logo-wrapper">
-                <img src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e8ddc4da-23dd-4502-b65b-378c9cfe5efa/dk8vmd3-97c8aae2-705f-4b8a-99b9-77c11b7c24a8.png/v1/fill/w_1280,h_1280/pokemon_mezastar_logo_by_jormxdos_dk8vmd3-fullview.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTI4MCIsInBhdGgiOiIvZi9lOGRkYzRkYS0yM2RkLTQ102b2I2NWItMzc4YzljZmU1ZWZhL2RrOHZtZDMtOTdjOGFhZTItNzA1Zi00YjhhLTk5YjktNzdjMTFiN2MyNGE4LnBuZyIsIndpZHRoIjoiPD0xMjgwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.rkJpf_2Z-QbpA-ni8TYqPgEe_47GIz8bVd9Gbc8Qhxo" class="mezastar-logo" alt="Pokémon MEZASTAR Logo">
+                <img src="https://world.pokemonmezastar.com/share/img/logo.png" class="mezastar-logo" alt="Pokémon MEZASTAR Logo" onerror="this.src='logo.png'">
             </div>
             <div>
                 <span class="subtitle-badge"><i class="fa-solid fa-trophy"></i> Bảng Xếp Hạng Tag Battle Challenge</span>
@@ -471,6 +471,14 @@
             return String(val);
         }
 
+        // LẤY GIÁ TRỊ FORMATTED TỪ GOOGLE SHEET BẤT CHẤP LÀ CHỮ HAY SỐ
+        function getCellValue(cell) {
+            if (!cell) return '';
+            // Nếu có giá trị formatted (f) (ví dụ: VN2732860632), lấy nó trước.
+            // Nếu không có, lấy giá trị thô (v).
+            return cell.f ? cell.f : (cell.v ? String(cell.v) : '');
+        }
+
         async function fetchRankingData() {
             try {
                 const response = await fetch(GVIZ_URL);
@@ -486,15 +494,17 @@
                     const cells = row.c;
                     if (!cells) return;
 
-                    const p1 = cells[1] ? (cells[1].v || '') : '';
-                    const id1 = cells[2] ? (cells[2].v || '') : '';
-                    const p2 = cells[3] ? (cells[3].v || '') : '';
-                    const id2 = cells[4] ? (cells[4].v || '') : '';
+                    const p1 = getCellValue(cells[1]);
+                    // SỬA LỖI MẤT TRAINER ID: Lấy giá trị định dạng f hoặc ép kiểu v thành chuỗi
+                    const id1 = getCellValue(cells[2]);
+                    const p2 = getCellValue(cells[3]);
+                    const id2 = getCellValue(cells[4]);
+                    
                     const time = formatSheetTime(cells[5]);
                     const scoreRaw = cells[6] ? cells[6].v : 0;
                     const score = parseFloat(scoreRaw) || 0;
 
-                    if (p1.toString().trim() !== '' || p2.toString().trim() !== '') {
+                    if (p1.trim() !== '' || p2.trim() !== '') {
                         parsedData.push({ p1, id1, p2, id2, time, score });
                     }
                 });
@@ -606,8 +616,8 @@
             const filtered = rawLeaderboardData.filter(item => 
                 item.p1.toLowerCase().includes(query) ||
                 item.p2.toLowerCase().includes(query) ||
-                item.id1.toString().toLowerCase().includes(query) ||
-                item.id2.toString().toLowerCase().includes(query)
+                item.id1.toLowerCase().includes(query) ||
+                item.id2.toLowerCase().includes(query)
             );
 
             renderLeaderboard(filtered);
